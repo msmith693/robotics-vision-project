@@ -1,0 +1,127 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="r6bot_ros2_control" params="name">
+
+    <ros2_control name="${name}" type="system">
+
+      <hardware>
+        <plugin>ros2_control_demo_example_7/RobotSystem</plugin>
+        <!-- note - need tp change joint naming convention as joint names currently don't match -->
+        <param name="joint_0_name">joint_1</param>
+        <param name="joint_1_name">joint_2</param>
+        <param name="joint_2_name">joint_3</param>
+        <param name="joint_3_name">joint_4</param>
+        <param name="joint_4_name">joint_5</param>
+        <param name="joint_5_name">joint_6</param>
+        <param name="loop_rate">30</param>
+        <!-- <param name = "baud_rate"></param> need to use LibSerial::BaudRate::BAUD_115200, not an
+        int type -->
+        <param name="timeout_ms">10000</param>
+        <param name="device">/dev/ttyACM0</param>
+        <!-- Step cpounts per rad 3200 / (2*PI) -->
+        <param name="step_counts_per_rad">509.2958179</param> 
+        <param name = "joint_0_reduction">5.33333333</param>
+        <param name = "joint_1_reduction">27</param>
+        <param name = "joint_2_reduction">24</param>
+        <!-- NOTE this is temporary. I think motor 4 may be in a different microstepping mode. -->
+        <param name = "joint_3_reduction">1.33333</param>
+        <param name = "joint_4_reduction">3</param>
+        <param name = "joint_5_reduction">1</param>
+      </hardware>
+
+      <joint name="joint_1">
+        <command_interface name="position">
+          <param name="min">${-2*pi}</param>
+          <param name="max">${2*pi}</param>
+        </command_interface>
+        <!-- <command_interface name="velocity">
+          <param name="min">-3.15</param>
+          <param name="max">3.15</param>
+        </command_interface> -->
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity" />
+      </joint>
+
+      <joint name="joint_2">
+        <command_interface name="position">
+          <param name="min">${-2*pi}</param>
+          <param name="max">${2*pi}</param>
+        </command_interface>
+        <!-- <command_interface name="velocity">
+          <param name="min">-3.15</param>
+          <param name="max">3.15</param>
+        </command_interface> -->
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity" />
+      </joint>
+
+      <joint name="joint_3">
+        <command_interface name="position">
+          <param name="min">${-pi}</param>
+          <param name="max">${pi}</param>
+        </command_interface>
+        <!-- <command_interface name="velocity">
+          <param name="min">-3.15</param>
+          <param name="max">3.15</param>
+        </command_interface> -->
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity" />
+      </joint>
+
+      <joint name="joint_4">
+        <command_interface name="position">
+          <param name="min">${-2*pi}</param>
+          <param name="max">${2*pi}</param>
+        </command_interface>
+        <!-- <command_interface name="velocity">
+          <param name="min">-3.2</param>
+          <param name="max">3.2</param>
+        </command_interface> -->
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity" />
+      </joint>
+
+      <joint name="joint_5">
+        <command_interface name="position">
+          <param name="min">${-2*pi}</param>
+          <param name="max">${2*pi}</param>
+        </command_interface>
+        <!-- <command_interface name="velocity">
+          <param name="min">-3.2</param>
+          <param name="max">3.2</param>
+        </command_interface> -->
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity" />
+      </joint>
+
+      <joint name="joint_6">
+        <command_interface name="position">
+          <param name="min">${-2*pi}</param>
+          <param name="max">${2*pi}</param>
+        </command_interface>
+        <!-- <command_interface name="velocity">
+          <param name="min">-3.2</param>
+          <param name="max">3.2</param>
+        </command_interface> -->
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity" />
+      </joint>
+
+    </ros2_control>
+
+  </xacro:macro>
+
+</robot>

@@ -1,0 +1,227 @@
+<?xml version="1.0"?>
+<!-- This file needs cleaned up. Over-parameterised-->
+<robot
+    xmlns:xacro="http://www.ros.org/wiki/xacro"
+    name="robot">
+
+    <xacro:macro name="my_robot_description">
+        <!-- meshes -->
+        <xacro:property name="base_mesh"
+            value="package://robot_description/meshes/arm_base_mesh.stl" />
+        <xacro:property name="link_1_mesh"
+            value="package://robot_description/meshes/arm_link_1_mesh.stl" />
+        <xacro:property name="link_2_mesh"
+            value="package://robot_description/meshes/arm_link_2_mesh.stl" />
+        <xacro:property name="link_3_mesh"
+            value="package://robot_description/meshes/arm_link_3_mesh.stl" />
+        <xacro:property name="link_4_mesh"
+            value="package://robot_description/meshes/arm_link_4_mesh.stl" />
+        <xacro:property name="link_5_mesh"
+            value="package://robot_description/meshes/arm_link_5_mesh.stl" />
+
+        <xacro:property name="base_mass" value="12.0" />
+        <xacro:property name="base_radius" value="0.09" />
+        <xacro:property name="base_length" value="0.086" />
+        <xacro:property name="link_1_radius" value="0.09" />
+        <xacro:property name="link_1_length" value="0.079" />
+        <xacro:property name="link_2_radius" value="0.08" />
+        <xacro:property name="link_2_length" value="0.23" />
+        <xacro:property name="link_3_radius" value="0.07" />
+        <xacro:property name="link_3_length" value="0.075" />
+        <xacro:property name="link_4_radius" value="0.05" />
+        <xacro:property name="link_4_length" value="0.145" />
+        <xacro:property name="link_5_radius" value="0.05" />
+        <xacro:property name="link_5_length" value="0.03" />
+        <xacro:property name="end_effector_length" value="0.01" />
+        <xacro:property name="end_effector_width" value="0.005" />
+        <xacro:property name="end_effector_height" value="0.005" />
+        <xacro:property name="end_effector_mass" value="0.5" />
+
+        <material name="bone">
+            <color rgba="0.89 0.85 0.79 1" />
+        </material>
+
+        <material name="navy">
+            <color rgba="0.16 0.18 0.34 1" />
+        </material>
+
+        <xacro:macro name="link" params="suffix mesh xyz rpy geom_xyz length radius mass colour">
+            <link name="link_${suffix}">
+                <visual>
+                    <origin xyz="${xyz}" rpy="${rpy}" />
+                    <geometry>
+                        <mesh
+                            filename="${mesh}"
+                            scale="0.001 0.001 0.001" />
+                    </geometry>
+                    <material name="${colour}" />
+                </visual>
+                <collision>
+                    <origin xyz="${geom_xyz}" rpy="0.0 0.0 0.0" />
+                    <geometry>
+                        <cylinder radius="${radius}" length="${length}" />
+                    </geometry>
+                </collision>
+                <inertial>
+                    <origin xyz="${xyz}" rpy="${rpy}" />
+                    <mass value="${mass}" />
+                    <inertia
+                        ixx="${mass * (3*radius*radius + length*length) / 12.0}"
+                        ixy="0" ixz="0"
+                        iyy="${mass * radius * radius / 2.0}"
+                        iyz="0"
+                        izz="${mass * (3*radius*radius + length*length) / 12.0}" />
+                </inertial>
+            </link>
+        </xacro:macro>
+
+        <link name="world" />
+        <joint name="world_joint" type="fixed">
+            <parent link="world" />
+            <child link="link_base" />
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+        </joint>
+
+        <!-- <xacro:link suffix="base" mesh="${base_mesh}" length="${base_length}"
+            radius="${base_radius}"
+            mass="0.5"
+            colour="bone" /> -->
+
+        <link name="link_base">
+            <visual>
+                <!-- dont want half of base joint, want half of motor enclosure (lower part) -->
+                <origin xyz="0.0 0.0 0.0295" rpy="0.0 0.0 ${pi}" />
+                <geometry>
+                    <mesh
+                        filename="${base_mesh}"
+                        scale="0.001 0.001 0.001" />
+                </geometry>
+                <material name="bone" />
+            </visual>
+            <collision>
+                <origin xyz="0.0 0.0 0.0295" rpy="0.0 0.0 0.0" />
+                <geometry>
+                    <cylinder radius="${base_radius}" length="${base_length}" />
+                </geometry>
+            </collision>
+            <inertial>
+                <origin xyz="0.0 0.0 0.0295" rpy="0.0 0.0 0.0" />
+                <mass value="0.5" />
+                <inertia
+                    ixx="${0.5 * (3*base_radius*base_radius + base_length*base_length) / 12.0}"
+                    ixy="0" ixz="0"
+                    iyy="${0.5 * base_radius * base_radius / 2.0}"
+                    iyz="0"
+                    izz="${0.5 * (3*base_radius*base_radius + base_length*base_length) / 12.0}" />
+            </inertial>
+        </link>
+
+        <joint name="joint_1" type="continuous">
+            <parent link="link_base" />
+            <child link="link_1" />
+            <origin xyz="0.0 0.0 ${base_length}" rpy="0.0 0.0 0.0" />
+            <axis xyz="0 0 1" />
+        </joint>
+
+        <xacro:link suffix="1" mesh="${link_1_mesh}" xyz="0.0 0.0 -0.055" rpy="0.0 0.0 0.0"
+            geom_xyz="0.0 0.0 0.0"
+            length="${link_1_length}"
+            radius="${link_1_radius}"
+            mass="0.5"
+            colour="bone" />
+        <joint name="joint_2" type="revolute">
+            <limit lower="${0}" upper="${pi/2}" effort="0.0" velocity="${pi}" />
+            <parent link="link_1" />
+            <child link="link_2" />
+            <origin xyz="0.0 0.0 ${link_1_length}" rpy="0.0 0.0 0.0" />
+            <axis xyz="0.0 1 0.0" />
+        </joint>
+
+        <xacro:link suffix="2" mesh="${link_2_mesh}" xyz="0.0 0.0 -0.134" rpy="0.0 0.0 0.0"
+            geom_xyz="0.0 0.0 0.078" 
+            length="${link_2_length}"
+            radius="${link_2_radius}"
+            mass="0.5"
+            colour="bone" />
+        <joint name="joint_3" type="revolute">
+            <limit lower="${-pi/2}" upper="${pi/2}" effort="0.0" velocity="${pi}" />
+            <parent link="link_2" />
+            <child link="link_3" />
+            <origin xyz="0.0 0.0 ${link_2_length}" rpy="0.0 ${pi/2} 0.0" />
+            <axis xyz="0.0 1 0.0" />
+        </joint>
+
+        <xacro:link suffix="3" mesh="${link_3_mesh}" xyz="0.365 0.0 0.0" rpy="0.0 -${pi/2} 0.0"
+            geom_xyz="0.0 0.0 0.0"
+            length="${link_3_length}"
+            radius="${link_3_radius}"
+            mass="0.5"
+            colour="bone" />
+        <joint name="joint_4" type="continuous">
+            <parent link="link_3" />
+            <child link="link_4" />
+            <origin xyz="0.0 0.0 ${link_3_length}" rpy="0.0 0.0 0.0" />
+            <axis xyz="0.0 0.0 1" />
+        </joint>
+
+        <xacro:link suffix="4" mesh="${link_4_mesh}" xyz="0.365 0.0 -0.075" rpy="0.0 -${pi/2} 0.0"
+            geom_xyz="0.0 0.0 0.04"
+            length="${link_4_length}"
+            radius="${link_4_radius}"
+            mass="0.5"
+            colour="bone" />
+        <joint name="joint_5" type="revolute">
+            <limit lower="${-pi/2}" upper="${pi/2}" effort="0.0" velocity="${pi}" />
+            <parent link="link_4" />
+            <child link="link_5" />
+            <origin xyz="0.0 0.0 ${link_4_length}" rpy="0.0 0.0 0.0" />
+            <axis xyz="0.0 1.0 0.0" />
+        </joint>
+
+        <xacro:link suffix="5" mesh="${link_5_mesh}" xyz="0.37 0.0 -0.22" rpy="0.0 -${pi/2} 0.0"
+            geom_xyz="0.0 0.0 0.0"
+            length="${link_5_length}"
+            radius="${link_5_radius}"
+            mass="0.5"
+            colour="bone" />
+        <joint name="joint_6" type="continuous">
+            <parent link="link_5" />
+            <child link="end_effector" />
+            <origin xyz="0.0 0.0 ${link_5_length}" rpy="0.0 0.0 0.0" />
+            <axis xyz="0.0 0 1" />
+        </joint>
+
+        <link name="end_effector">
+            <visual>
+                <origin xyz="0.0 0.0 ${end_effector_length/2}" />
+                <geometry>
+                    <box size="${end_effector_length} ${end_effector_width} ${end_effector_height}" />
+                </geometry>
+                <material name="bone" />
+            </visual>
+            <collision>
+                <origin
+                    xyz="${end_effector_length/2} ${end_effector_width/2} ${end_effector_height/2}"
+                    rpy="0.0 0.0 0.0" />
+                <geometry>
+                    <box size="${end_effector_length} ${end_effector_width} ${end_effector_height}" />
+                </geometry>
+            </collision>
+            <inertial>
+                <origin xyz="${end_effector_length} ${end_effector_width} ${end_effector_height/2}"
+                    rpy="0.0 0.0 0.0" />
+                <mass value="${end_effector_mass}" />
+                <inertia
+                    ixx="${end_effector_mass * (end_effector_width*end_effector_width +
+    end_effector_length*end_effector_length) / 12.0}"
+                    ixy="0" ixz="0"
+                    iyy="${end_effector_mass * (end_effector_height*end_effector_height +
+    end_effector_length*end_effector_length) / 12.0}"
+                    iyz="0"
+                    izz="${end_effector_mass * (end_effector_height*end_effector_height +
+    end_effector_width*end_effector_width) / 12.0}" />
+            </inertial>
+        </link>
+
+    </xacro:macro>
+</robot>

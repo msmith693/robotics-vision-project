@@ -1,0 +1,7 @@
+int32 shelf_number
+---
+bool success
+string final_message
+---
+float32 distance_remaining
+string status

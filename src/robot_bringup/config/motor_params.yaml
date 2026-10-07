@@ -1,0 +1,4 @@
+motor_controller:
+  ros_parameters:
+    max_speed = 0.8
+    wheel_radius = 0.05
