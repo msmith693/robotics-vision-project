@@ -19,14 +19,19 @@
         int type -->
         <param name="timeout_ms">10000</param>
         <param name="device">/dev/ttyACM0</param>
-        <!-- Step cpounts per rad 3200 / (2*PI) -->
-        <param name="step_counts_per_rad">509.2958179</param> 
+        <!-- Step counts per rad 1600 / (2*PI) -->
+        <param name="step_counts_per_rad">254.6479089</param>
+        <!-- joint 0 has 1600 steps per rev  -->
         <param name = "joint_0_reduction">5.33333333</param>
+        <!-- joint 1 has 1600 steps per rev -->
         <param name = "joint_1_reduction">27</param>
+        <!-- joint 2 has 1600 steps per rev -->
         <param name = "joint_2_reduction">24</param>
-        <!-- NOTE this is temporary. I think motor 4 may be in a different microstepping mode. -->
-        <param name = "joint_3_reduction">1.33333</param>
+        <!-- joint 3 has 1600 steps per rev-->
+        <param name = "joint_3_reduction">2.6666</param>
+        <!-- joint 4 has 1600 steps per rev -->
         <param name = "joint_4_reduction">3</param>
+        <!-- joint 5 has 1600 steps per rev -->
         <param name = "joint_5_reduction">1</param>
       </hardware>
 
