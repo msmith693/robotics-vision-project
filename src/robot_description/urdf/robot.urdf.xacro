@@ -32,7 +32,7 @@
         <xacro:property name="link_4_length" value="0.145" />
         <xacro:property name="link_5_radius" value="0.05" />
         <xacro:property name="link_5_length" value="0.03" />
-        <xacro:property name="end_effector_length" value="0.01" />
+        <xacro:property name="end_effector_length" value="0.005" />
         <xacro:property name="end_effector_width" value="0.005" />
         <xacro:property name="end_effector_height" value="0.005" />
         <xacro:property name="end_effector_mass" value="0.5" />
@@ -157,7 +157,8 @@
             radius="${link_3_radius}"
             mass="0.5"
             colour="bone" />
-        <joint name="joint_4" type="continuous">
+        <joint name="joint_4" type="revolute">
+            <limit lower="${-pi}" upper="${pi}" effort="0.0" velocity="${pi}" />
             <parent link="link_3" />
             <child link="link_4" />
             <origin xyz="0.0 0.0 ${link_3_length}" rpy="0.0 0.0 0.0" />
