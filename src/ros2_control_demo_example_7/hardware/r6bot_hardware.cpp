@@ -23,8 +23,6 @@
 #include "rclcpp/rclcpp.hpp"
 #include <libserial/SerialPort.h>
 
-const double deg_per_rad = 57.29578;
-
 namespace ros2_control_demo_example_7 {
 CallbackReturn
 RobotSystem::on_init(const hardware_interface::HardwareInfo &info) {
@@ -64,7 +62,9 @@ RobotSystem::on_init(const hardware_interface::HardwareInfo &info) {
   joint_velocity_.assign(6, 0);
   joint_position_command_.assign(6, 0);
 
-  joint_reductions_ = {cfg_.joint_0_reduction, cfg_.joint_1_reduction, cfg_.joint_2_reduction, cfg_.joint_3_reduction, cfg_.joint_4_reduction, cfg_.joint_5_reduction};
+  joint_reductions_ = {cfg_.joint_0_reduction, cfg_.joint_1_reduction,
+                       cfg_.joint_2_reduction, cfg_.joint_3_reduction,
+                       cfg_.joint_4_reduction, cfg_.joint_5_reduction};
 
   // Populate all state interfaces with joint names
   for (const auto &joint : info_.joints) {
@@ -134,18 +134,25 @@ RobotSystem::on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/) {
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
-return_type RobotSystem::read(const rclcpp::Time & /*time*/,
-                              const rclcpp::Duration &period) {
+return_type RobotSystem::read(
+    const rclcpp::Time &,
+    const rclcpp::Duration &period) { // Period object already created by
+                                      // controller manager. Can just use.
   if (!serial_port_.IsOpen()) {
     RCLCPP_ERROR(get_logger(), "Arduino connection lost.");
     return hardware_interface::return_type::ERROR;
   }
-  RCLCPP_INFO(get_logger(), "You are at the start of read()");
   // string to be filled with serial info
   std::string received_joint_poses;
   serial_port_.ReadLine(received_joint_poses, '\n', cfg_.timeout_ms);
+
+  // Rate limit the position updates. This is WRONG, causes read timeout 
+  // if ((time.nanoseconds() - prev_read_log_time) >=
+  //     2'000'000'000) { // position updates every half second
   RCLCPP_INFO(get_logger(), "Incoming serial message: '%s'",
               received_joint_poses.c_str());
+  //   prev_read_log_time = time.nanoseconds();
+  // }
 
   // store time since joint state interfaces were last updated
   double delta_seconds = period.seconds();
@@ -156,17 +163,24 @@ return_type RobotSystem::read(const rclcpp::Time & /*time*/,
   // Update joint_position_ vector with joint poses from serial connection
   for (size_t i = 0; i < joint_position_.size(); i++) {
     // Store previous position and time elapsed to calculate velocity of joint
+
     double pos_prev = joint_position_[i];
 
     double joint_pos = std::stod(received_joint_poses.substr(0, del_pos));
-    double joint_pos_rad = joint_pos / (cfg_.step_counts_per_rad*joint_reductions_[i]);
-    RCLCPP_INFO(get_logger(), "Parsed joint pos in degs: '%s'",
-                std::to_string(joint_pos_rad*deg_per_rad).c_str());
+    double joint_pos_rad =
+        joint_pos / (cfg_.step_counts_per_rad * joint_reductions_[i]);
+    // RCLCPP_INFO(get_logger(), "Parsed joint pos in degs: '%s'",
+    //             std::to_string(joint_pos_rad*deg_per_rad).c_str());
     double joint_vel = (joint_pos_rad - pos_prev) / delta_seconds;
 
     // Update state_interfaces
-    joint_position_[i] = joint_pos_rad;
-    joint_velocity_[i] = joint_vel;
+    if (i == 3) {
+      joint_position_[i] = -joint_pos_rad;
+      joint_velocity_[i] = -joint_vel;
+    } else {
+      joint_position_[i] = -joint_pos_rad;
+      joint_velocity_[i] = -joint_vel;
+    }
 
     received_joint_poses.erase(0, del_pos + delimiter.length());
     del_pos = received_joint_poses.find(delimiter);
@@ -175,7 +189,8 @@ return_type RobotSystem::read(const rclcpp::Time & /*time*/,
   return return_type::OK;
 }
 
-return_type RobotSystem::write(const rclcpp::Time &, const rclcpp::Duration &) {
+return_type RobotSystem::write(const rclcpp::Time &,
+                               const rclcpp::Duration &) {
 
   if (!serial_port_.IsOpen()) {
     return hardware_interface::return_type::ERROR;
@@ -184,14 +199,16 @@ return_type RobotSystem::write(const rclcpp::Time &, const rclcpp::Duration &) {
   std::string command;
 
   for (size_t i = 0; i < joint_position_command_.size(); i++) {
-    // COndiitonal to flip the commands for certain joints - joint 3 is the only 'normal' joint.
-    if(i == 3){
+    // COndiitonal to flip the commands for certain joints - joint 3 is the only
+    // 'normal' joint.
+    if (i == 3) {
       command +=
-        std::to_string(joint_position_command_[i] * cfg_.step_counts_per_rad*joint_reductions_[i]);
-    }
-    else{
+          std::to_string(-(joint_position_command_[i] *
+                           cfg_.step_counts_per_rad * joint_reductions_[i]));
+    } else {
       command +=
-        std::to_string(-(joint_position_command_[i] * cfg_.step_counts_per_rad*joint_reductions_[i]));
+          std::to_string(-(joint_position_command_[i] *
+                           cfg_.step_counts_per_rad * joint_reductions_[i]));
     }
     // If on last joint in joint_position vector, append \n
     if (i == joint_position_command_.size() - 1) {
@@ -200,8 +217,12 @@ return_type RobotSystem::write(const rclcpp::Time &, const rclcpp::Duration &) {
       command += ',';
     }
   }
+  // if ((time.nanoseconds() - prev_write_log_time) >=
+  // 2'000'000'000) { // position updates every half second
   RCLCPP_INFO(get_logger(), "Message to be sent to arduino: '%s'",
               command.c_str());
+  // prev_write_log_time = time.nanoseconds();
+  // }
   serial_port_.Write(command);
 
   return return_type::OK;
